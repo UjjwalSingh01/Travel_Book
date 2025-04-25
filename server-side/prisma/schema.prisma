@@ -1,0 +1,189 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum UserRole {
+  User
+  Admin
+  Moderator
+}
+
+enum AccountStatus {
+  Active
+  Suspended
+  Deactivated
+}
+
+enum BookStatus {
+  Planning
+  Explored
+}
+
+enum Visibility {
+  Private
+  Public
+}
+
+enum Category {
+  Restaurant
+  Hotel
+  Attraction
+  Activity
+  Other
+}
+
+enum WishlistItemType {
+  Book
+  Page
+}
+
+model User {
+  id             String          @id @default(uuid())
+  firstName      String
+  lastName       String
+  email          String          @unique
+  phoneNumber    String?         @unique
+  gender         Gender
+  dateOfBirth    String
+  password       String
+  profileImage   String?         @default("")
+  bio            String?         @default("")
+  role           UserRole        @default(User)
+  isVerified     Boolean         @default(false)
+  accountStatus  AccountStatus   @default(Active)
+  socialLinks    SocialLinks?
+  books          Book[]
+  itineraries    Itinerary[]
+  // wishlists      Wishlist[]
+  experiences    Experience[]
+  // replies        Reply[]
+  reviews        Review[]
+  dateJoined     DateTime        @default(now())
+  lastLogin      DateTime?
+}
+
+model SocialLinks {
+  id        String     @id @default(uuid())
+  instagram String?
+  twitter   String?
+  facebook  String?
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String     @unique
+}
+
+model Book {
+  id            String         @id @default(uuid())
+  title         String
+  description   String?
+  tags          String[]
+  imageUrl      String?        @default("")
+  pages         Page[]
+  status        BookStatus     @default(Planning)
+  visibility    Visibility     @default(Public)
+  addedBy       User           @relation(fields: [addedById], references: [id])
+  addedById     String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Page {
+  id              String          @id @default(uuid())
+  title           String
+  status          BookStatus      @default(Planning)
+  images          String[]
+  description     String?
+  tips            String?
+  // location        Json?
+  book            Book            @relation(fields: [bookId], references: [id])
+  bookId          String
+  itineraries     Itinerary[]     @relation("PageToItinerary")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Itinerary {
+  id                String           @id @default(uuid())
+  title             String
+  description       String?
+  caption           String?
+  category          Category
+  location          Json
+  images            String[]
+  rating            Float
+  views             Int               @default(0)
+  page              Page?             @relation("PageToItinerary", fields: [pageId], references: [id])
+  pageId            String?  
+  experiences       Experience[]
+  reviews           Review[]
+  addedBy           User              @relation(fields: [addedById], references: [id])
+  addedById         String
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model Experience {
+  id                String       @id @default(uuid())
+  comment           String
+  upVotes           String[]     
+  // replies           Reply[]
+  user              User         @relation(fields: [userId], references: [id])
+  userId            String
+  itinerary         Itinerary    @relation(fields: [itineraryId], references: [id])
+  itineraryId       String
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+// model Reply {
+//   id           String         @id @default(uuid())
+//   comment      String
+//   user         User           @relation(fields: [userId], references: [id])
+//   userId       String
+//   experience   Experience     @relation(fields: [experienceId], references: [id])
+//   experienceId String
+//   createdAt    DateTime       @default(now())
+// }
+
+model Review {
+  id          String       @id @default(uuid())
+  rating      Int
+  comment     String?
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String
+  itinerary   Itinerary    @relation(fields: [itineraryId], references: [id])
+  itineraryId String
+  createdAt   DateTime     @default(now())
+}
+
+// model Wishlist {
+//   id        String            @id @default(uuid())
+//   user      User              @relation(fields: [userId], references: [id])
+//   userId    String            @unique
+//   items     WishlistItem[]
+//   createdAt DateTime          @default(now())
+//   updatedAt DateTime          @updatedAt
+// }
+
+// model WishlistItem {
+//   id          String             @id @default(uuid())
+//   type        WishlistItemType
+//   book        Book?              @relation(fields: [bookId], references: [id])
+//   bookId      String?
+//   page        Page?              @relation(fields: [pageId], references: [id])
+//   pageId      String?
+//   addedAt     DateTime           @default(now())
+//   wishlist    Wishlist           @relation(fields: [wishlistId], references: [id])
+//   wishlistId  String
+// }
