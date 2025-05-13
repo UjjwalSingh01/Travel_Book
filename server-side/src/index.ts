@@ -10,7 +10,6 @@ import { pageRoutes } from "./routes/PageRoutes";
 import { bookRoutes } from "./routes/BookRoutes";
 import { itineraryRoutes } from "./routes/ItineraryRoutes";
 // import multer from "multer";
-// import connectDB from "./config/mongodbConnection";
 
 dotenv.config();
 
@@ -20,16 +19,15 @@ const PORT = process.env.PORT || 5000;
 declare global {
   namespace Express {
     interface Request {
-      user?: DecodedUser; // Add the `user` property to the Request type
+      user?: DecodedUser;
     }
   }
 }
 
-// connectDB();
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL, // Your frontend URL
-  credentials: true, // Allow credentials (cookies, headers)
+  origin: process.env.FRONTEND_URL, 
+  credentials: true, 
 }));
 
 app.use(express.json());
@@ -43,10 +41,10 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/v1/auth", authRoutes);
-// app.use("/api/v1/user", userRoutes);
-// app.use('/api/v1/page', pageRoutes);
-// app.use('/api/v1/book', bookRoutes);
-// app.use('/api/v1/itinerary', itineraryRoutes);
+app.use("/api/v1/user", userRoutes);
+app.use('/api/v1/page', pageRoutes);
+app.use('/api/v1/book', bookRoutes);
+app.use('/api/v1/itinerary', itineraryRoutes);
 // app.use('/api/v1/wishlist', wishListRoutes);
 
 app.listen(PORT, () => {

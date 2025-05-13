@@ -142,6 +142,7 @@ interface ResetPasword {
   oldPassword: string;
   newPassword: string;
 }
+
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
   try {
     const { oldPassword, newPassword }: ResetPasword = req.body;

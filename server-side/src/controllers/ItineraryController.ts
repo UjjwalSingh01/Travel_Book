@@ -3,7 +3,7 @@ import { Category, PrismaClient, Visibility } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const getAllItinerary = async (req: Request, res: Response): Promise<void> => {
+export const getAllItineraries = async (req: Request, res: Response): Promise<void> => {
   try {
     const itineraries = await prisma.itinerary.findMany({
       select: {

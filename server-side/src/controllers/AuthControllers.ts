@@ -22,7 +22,6 @@ export interface RegisterType {
 export const register = async(req: Request, res: Response): Promise<void> => {
   try {
     console.log(req.body);
-
     const { firstName, lastName, email, gender, dateOfBirth, password, confirmPassword }: RegisterType = req.body;
 
     // Check if All Details are there or not
@@ -38,7 +37,7 @@ export const register = async(req: Request, res: Response): Promise<void> => {
     if (password !== confirmPassword) {
       res.status(400).json({
         success: false,
-        message: "Password and Confirm Password do not match. Please try again.",
+        message: "Passwords do not match. Please try again.",
       });
       return;
     }
@@ -50,7 +49,7 @@ export const register = async(req: Request, res: Response): Promise<void> => {
     if (existingUser) {
       res.status(400).json({
         success: false,
-        message: "User already exists. Please Sign-In to Continue.",
+        message: "Email is already registered. Please Sign-In to Continue.",
       });
       return;
     }
@@ -97,7 +96,7 @@ export const register = async(req: Request, res: Response): Promise<void> => {
     return;
 
   } catch (error) {
-    console.error("Error in User Sign-Up:", error);
+    console.error("Error in Sign-Up:", error);
     res.status(500).json({
       success: false,
       message: "Sign-Up Failure. Please Try Again",
@@ -114,7 +113,7 @@ interface LoginType {
 // Sign-In
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log(req.body)
+    console.log(req.body);
     const { email, password }: LoginType = req.body;
     
     // Check if all the Fields are Filled
@@ -136,7 +135,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (!user) {
       res.status(401).json({
         success: false,
-        message: "User is not Registered with Us. Please SignUp to Continue",
+        message: "Email is not Registered with Us. Please Sign-Up to Continue",
       });
       return;
     }
@@ -174,7 +173,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       success: true,
       user: `${user.firstName} ${user.lastName}`, 
-      message: "User logged in successfully",
+      message: "Welcome back!, Logged in Successfully",
     });
 
   } catch (error) {

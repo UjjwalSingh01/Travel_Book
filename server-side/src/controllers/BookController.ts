@@ -3,15 +3,13 @@ import { BookStatus, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// /book/:bookId/deletePageFromBook/:pageId
-// /book/:bookId/addPageToBook
 
 export const getMyBook = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'Not Logged In. Please login to continue.'
+        message: 'You are not Logged In. Please login to continue.'
       });
       return;
     }
@@ -40,16 +38,15 @@ export const getMyBook = async (req: Request, res: Response): Promise<void> => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('Server Error In Fetching your Books: ', error);
     res.status(500).json({ 
       success: false, 
-      message: "Server Error In Fetching your Books.Please Try Again." 
+      message: "Server Error In Fetching your Books. Please Try Again." 
     });
   }
 };
 
 // GET Book By ID (With all pages & itineraries)
-// EXPLORED
 export const getBookDescriptionById = async (req: Request, res: Response): Promise<void> => {
   try {
     const bookId: string = req.params.id;
@@ -58,7 +55,7 @@ export const getBookDescriptionById = async (req: Request, res: Response): Promi
       where: { id: bookId },
       select: {
         id: true,
-        title: true,
+        title: true, 
         description: true,
         tags: true,
         imageUrl: true,
@@ -98,10 +95,10 @@ export const getBookDescriptionById = async (req: Request, res: Response): Promi
     });
 
   } catch (error) {
-    console.error("Error fetching book:", error);
+    console.error("Error fetching book details: ", error);
     res.status(500).json({ 
       success: false, 
-      message: "Internal server error while fetching book details" 
+      message: "Server Error while fetching book details" 
     });
   }
 };
@@ -112,13 +109,12 @@ export const getPlanningBookById = async(req: Request, res: Response): Promise<v
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'Not Logged In. Please login to continue.'
+        message: 'You are not Logged In. Please login to continue.'
       });
       return;
     }
 
     const user = req.user;
-
     const bookId: string = req.params.bookId;
     
     const book = await prisma.book.findFirst({
@@ -188,7 +184,7 @@ export const createBook = async (req: Request, res: Response): Promise<void> => 
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'Not Logged In. Please login to continue.'
+        message: 'You are not Logged In. Please login to continue.'
       });
       return;
     }
@@ -239,7 +235,7 @@ export const getBookWithPages = async (req: Request, res: Response): Promise<voi
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'Not Logged In. Please login to continue.'
+        message: 'You are not Logged In. Please login to continue.'
       });
       return;
     }
@@ -285,10 +281,17 @@ export const getBookWithPages = async (req: Request, res: Response): Promise<voi
 };
 
 
-
 // POST Add Book
 export const addBookDetails = async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: 'You are not Logged In. Please login to continue.'
+      });
+      return;
+    }
+
     const { id } = req.params; 
     const { title, description, tags, imageUrl, visibility, status } = req.body;
 
