@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const addPageDetails = async (req: Request, res: Response): Promise<void> => {
   try {
     const { pageId } = req.params;
-    const { title, images, description, tips } = req.body;
+    const { title, description, tips } = req.body;
 
     // Find existing page    
     const page = await prisma.page.findFirst({
@@ -23,11 +23,21 @@ export const addPageDetails = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    let imageUrls: string[] = [];
+
+    if (Array.isArray(req.files)) {
+      imageUrls = (req.files as Express.Multer.File[]).map(file => (file as any).path);
+    } else if (req.files && req.files['images']) {
+      imageUrls = (req.files['images'] as Express.Multer.File[]).map(file => (file as any).path);
+    } else if (req.file) {
+      imageUrls = [(req.file as any).path];
+    }
+
     const updatedPage = await prisma.page.update({
       where: { id: pageId },
       data: {
         title: title,
-        images: images,
+        images: imageUrls,
         description: description,
         tips: tips,
         updatedAt: new Date(),

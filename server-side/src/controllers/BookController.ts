@@ -257,6 +257,8 @@ export const getBookWithPages = async (req: Request, res: Response): Promise<voi
       }
     });
 
+    console.log(bookData);
+
     if (!bookData) {
       res.status(404).json({
         success: false,
@@ -293,7 +295,16 @@ export const addBookDetails = async (req: Request, res: Response): Promise<void>
     }
 
     const { id } = req.params; 
-    const { title, description, tags, imageUrl, visibility, status } = req.body;
+    const { title, description, tags, visibility, status } = req.body;
+
+    let imageUrl: string | undefined;
+
+    if (req.file) {
+      imageUrl = (req.file as any).path; // Cloudinary returns secure URL here
+    } else {
+      imageUrl = undefined;
+    }
+
 
     const book = await prisma.book.findFirst({
       where:{ id }
@@ -321,7 +332,7 @@ export const addBookDetails = async (req: Request, res: Response): Promise<void>
         title: title || book.title,
         description: description || book.description,
         tags: tags || book.tags,
-        imageUrl: imageUrl || book.imageUrl,
+        imageUrl: imageUrl,
         visibility: visibility || book.visibility,
         status: status || book.status
       }

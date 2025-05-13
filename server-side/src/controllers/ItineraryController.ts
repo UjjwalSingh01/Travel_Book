@@ -261,7 +261,6 @@ interface ItineraryData {
     longitude: number;
   }
   rating: number;
-  images: string[];
   experience?: {
     comment: string;
     upVotes?: number;
@@ -300,6 +299,16 @@ export const addNewItinerary = async(req: Request, res: Response): Promise<void>
     }
 
     const itinerary: ItineraryData = req.body;
+
+    let imageUrls: string[] = [];
+
+    if (Array.isArray(req.files)) {
+      imageUrls = (req.files as Express.Multer.File[]).map(file => (file as any).path);
+    } else if (req.files && req.files['images']) {
+      imageUrls = (req.files['images'] as Express.Multer.File[]).map(file => (file as any).path);
+    } else if (req.file) {
+      imageUrls = [(req.file as any).path];
+    }
     // Create the itinerary
     const newItinerary = await prisma.itinerary.create({
       data: {
@@ -307,7 +316,7 @@ export const addNewItinerary = async(req: Request, res: Response): Promise<void>
         description: itinerary.description || "",
         caption: itinerary.caption || "",
         category: itinerary.category,
-        images: itinerary.images,
+        images: imageUrls,
         location: itinerary.location,
         rating: itinerary.rating,
         addedById: userExists.id,

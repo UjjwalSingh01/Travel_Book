@@ -11,15 +11,16 @@ import {
   getPlanningBookById,
   deleteBook
 } from "../controllers/BookController";
+import upload from "../configs/MulterConfig";
 
 const router = express.Router();
 
-router.get("/myBook", authMiddleware, getMyBook);
+router.get("/myBooks", authMiddleware, getMyBook);
 router.get('/getBookDescription/:id', getBookDescriptionById);
 router.get('/getPlanningBookDescription/:id', authMiddleware, getPlanningBookById);
 router.post('/createBook', authMiddleware, createBook);
 router.get('/getBookWithPages', authMiddleware, getBookWithPages);
-router.post('/addBookDetails', authMiddleware, addBookDetails);
+router.post('/addBookDetails', authMiddleware, upload.single('image'), addBookDetails);
 router.post("/:bookId/addPageToBook", authMiddleware, addPageToBook);
 router.delete('/deleteBook/:bookId', authMiddleware, deleteBook);
 router.delete("/:bookId/pages/:pageId", authMiddleware, deletePageFromBook);
