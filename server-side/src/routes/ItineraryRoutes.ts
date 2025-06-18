@@ -11,9 +11,9 @@ import upload from "../configs/MulterConfig";
 
 const router = express.Router()
 
-router.get("/getItineraries", authMiddleware, getAllItineraries);
+router.get("/getItineraries", getAllItineraries);
 router.get("/getItineraryDescritpion/:id", getItineraryById);
-router.post('/addNewItinerary', authMiddleware, upload.array('images', 10), addNewItinerary);
+router.post('/:pageId/addNewItinerary', authMiddleware, upload.array('images', 10), addNewItinerary);
 router.post('/:itinerayId/newExperience', authMiddleware, addExperience);
 router.post('/:itineraryId/toggleUpvote', authMiddleware, toggleUpvote);
 

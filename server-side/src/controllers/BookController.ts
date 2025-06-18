@@ -78,6 +78,7 @@ export const getBookDescriptionById = async (req: Request, res: Response): Promi
         }
       }
     })
+    console.log(`Book descriptiom: ${book}`);
     if (!book) {
       res.status(404).json({ 
         success: false, 
@@ -235,34 +236,47 @@ export const getBookWithPages = async (req: Request, res: Response): Promise<voi
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'You are not Logged In. Please login to continue.'
+        message: 'You are not logged in. Please login to continue.'
       });
       return;
     }
 
-    const user = req.user;
+    const userId = req.user.id;
 
-    const bookData = await prisma.book.findFirst({
-      where: { id: user.id },
+    const books = await prisma.book.findMany({
+      where: { addedById: userId },
       select: { 
         id: true,
         title: true,
         status: true,
+        description: true,
+        tags: true,
+        imageUrl: true,
+        visibility: true,
         pages: {
           select: {
             id: true,
-            title: true
+            title: true,
+            status: true,
+            images: true,
+            description: true,
+            tips: true,
+            // location: true, // Uncomment if needed
+            itineraries: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
           }
         }
       }
     });
 
-    console.log(bookData);
-
-    if (!bookData) {
+    if (!books || books.length === 0) {
       res.status(404).json({
         success: false,
-        message: 'Book not found for this user.'
+        message: 'No books found for this user.'
       });
       return;
     }
@@ -270,7 +284,7 @@ export const getBookWithPages = async (req: Request, res: Response): Promise<voi
     res.status(200).json({
       success: true,
       message: 'Book details fetched successfully.',
-      data: bookData
+      data: books
     });
 
   } catch (error) {
@@ -289,27 +303,46 @@ export const addBookDetails = async (req: Request, res: Response): Promise<void>
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'You are not Logged In. Please login to continue.'
+        message: 'Authentication required. Please login to continue.'
       });
       return;
     }
 
-    const { id } = req.params; 
+    const { bookId } = req.params; 
     const { title, description, tags, visibility, status } = req.body;
 
-    let imageUrl: string | undefined;
-
-    if (req.file) {
-      imageUrl = (req.file as any).path; // Cloudinary returns secure URL here
-    } else {
-      imageUrl = undefined;
+    // Validate required fields
+    if (!title && !description && !tags && !visibility && !status && !req.file) {
+      res.status(400).json({
+        success: false,
+        message: 'No update data provided'
+      });
+      return;
     }
 
+    // Handle tags conversion
+    let parsedTags: string[] = [];
+    if (tags) {
+      try {
+        parsedTags = JSON.parse(tags);
+        // if (!Array.isArray(parsedTags) {
+        //   throw new Error('Tags must be an array');
+        // }
+      } catch (e) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid tags format. Please provide a valid JSON array.'
+        });
+        return;
+      }
+    }
 
-    const book = await prisma.book.findFirst({
-      where:{ id }
-    })
-    if (!book){
+    // Find the book to verify ownership
+    const book = await prisma.book.findUnique({
+      where: { id: bookId }
+    });
+
+    if (!book) {
       res.status(404).json({ 
         success: false, 
         message: "Book not found" 
@@ -317,37 +350,53 @@ export const addBookDetails = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Ensure only the book owner can modify details
-    if (book.addedById !== req.user?.id) {
+    // Verify ownership
+    if (book.addedById !== req.user.id) {
       res.status(403).json({ 
         success: false, 
-        message: "Access denied"
+        message: "You don't have permission to edit this book" 
       });
       return;
     }
 
-    const updateBook = await prisma.book.update({
-      where: { id: id },
-      data: {
-        title: title || book.title,
-        description: description || book.description,
-        tags: tags || book.tags,
-        imageUrl: imageUrl,
-        visibility: visibility || book.visibility,
-        status: status || book.status
-      }
-    })
+    // Prepare update data - only include provided fields
+    const updateData: {
+      title?: string;
+      description?: string | null;
+      tags?: string[];
+      imageUrl?: string | null;
+      visibility?: 'Private' | 'Public';
+      status?: 'Planning' | 'Explored';
+    } = {};
 
-    res.status(201).json({ 
+    if (title) updateData.title = title;
+    if (description !== undefined) updateData.description = description || null;
+    if (parsedTags.length > 0) updateData.tags = parsedTags;
+    
+    // Handle image upload
+    if (req.file) {
+      updateData.imageUrl = (req.file as any).path;
+    }
+    
+    if (visibility) updateData.visibility = visibility as 'Private' | 'Public';
+    if (status) updateData.status = status as 'Planning' | 'Explored';
+
+    // Update the book
+    const updatedBook = await prisma.book.update({
+      where: { id: bookId },
+      data: updateData
+    });
+
+    res.status(200).json({ 
       success: true, 
       message: "Book details updated successfully",
-      data: updateBook 
+      data: updatedBook 
     });
 
   } catch (error) {
-    console.error("Error in Updating Book Details", error);
-
-     // Handle Prisma errors
+    console.error("Error updating book details:", error);
+    
+    // Handle Prisma errors
     // if (error instanceof Prisma.PrismaClientKnownRequestError) {
     //   if (error.code === 'P2025') {
     //     return res.status(404).json({ 
@@ -356,9 +405,10 @@ export const addBookDetails = async (req: Request, res: Response): Promise<void>
     //     });
     //   }
     // }
+    
     res.status(500).json({ 
       success: false, 
-      message: "Failed to update book details" 
+      message: "Internal server error" 
     });
   }
 };

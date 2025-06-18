@@ -256,7 +256,6 @@ interface ItineraryData {
   caption?: string;
   category: Category
   location: {
-    address: string;
     latitude: number;
     longitude: number;
   }
@@ -298,23 +297,34 @@ export const addNewItinerary = async(req: Request, res: Response): Promise<void>
       return;
     }
 
-    const itinerary: ItineraryData = req.body;
+    const itinerary: ItineraryData = {
+      title: req.body.title,
+      description: req.body.description,
+      // caption: req.body.caption,
+      category: req.body.category,
+      location: {
+        latitude: parseFloat(req.body.latitude),
+        longitude: parseFloat(req.body.longitude)
+      },
+      rating: parseFloat(req.body.rating),
+      experience: req.body.experienceComment,
+    };
 
     let imageUrls: string[] = [];
-
-    if (Array.isArray(req.files)) {
-      imageUrls = (req.files as Express.Multer.File[]).map(file => (file as any).path);
-    } else if (req.files && req.files['images']) {
-      imageUrls = (req.files['images'] as Express.Multer.File[]).map(file => (file as any).path);
-    } else if (req.file) {
-      imageUrls = [(req.file as any).path];
+    if (req.files) {
+      if (Array.isArray(req.files)) {
+        imageUrls = req.files.map(file => (file as any).path);
+      } else if (req.files['images']) {
+        imageUrls = req.files['images'].map(file => (file as any).path);
+      }
     }
+
     // Create the itinerary
     const newItinerary = await prisma.itinerary.create({
       data: {
         title: itinerary.title,
         description: itinerary.description || "",
-        caption: itinerary.caption || "",
+        // caption: itinerary.caption || "", 
         category: itinerary.category,
         images: imageUrls,
         location: itinerary.location,
@@ -338,8 +348,10 @@ export const addNewItinerary = async(req: Request, res: Response): Promise<void>
     
     res.status(200).json({
       success: true,
-      message: 'New Itinerary Added Successfully'
+      message: 'New Itinerary Added Successfully',
+      data: newItinerary
     })
+
   } catch (error) {
     console.error('Error in Adding New Itinerary: ', error);
     res.status(500).json({
