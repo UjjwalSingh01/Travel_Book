@@ -172,7 +172,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   
     res.status(200).json({
       success: true,
-      user: `${user.firstName} ${user.lastName}`, 
+      data: {
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        roles: user.role,
+      },
       message: "Welcome back!, Logged in Successfully",
     });
 
@@ -206,6 +210,7 @@ export const currentUser = async(req: Request, res: Response): Promise<void> => 
       select: {
         firstName: true,
         lastName: true,
+        role: true,
       }
     })
       
@@ -214,6 +219,7 @@ export const currentUser = async(req: Request, res: Response): Promise<void> => 
       data: {
         name: `${user?.firstName} ${user?.lastName}`,
         email: email,
+        roles: user?.role
       },
       message: "Succesfully Fetched Your Details"
     })

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Category, PrismaClient, Visibility } from "@prisma/client";
+import { formatDate } from '../utils/FormatDate/FormatDate';
 
 const prisma = new PrismaClient();
 
@@ -121,7 +122,7 @@ export const getItineraryById = async (req: Request, res: Response): Promise<voi
         image: primaryImage,
         title: itinerary.title,
         addedBy: `${itinerary.addedBy.firstName} ${itinerary.addedBy.lastName}`,
-        lastUpdatedAt: itinerary.updatedAt,
+        lastUpdatedAt: formatDate(itinerary.updatedAt),
       },
       caption: itinerary.caption || "",
       highlights: {
@@ -158,7 +159,7 @@ export const addExperience = async(req: Request, res: Response): Promise<void> =
 
     const user = req.user;
     const { comment } = req.body;
-    const itineraryId = req.params.itineraryId;
+    const itineraryId = req.params.itinerayId;
 
     // Create new experience
     const newExperience = await prisma.experience.create({
