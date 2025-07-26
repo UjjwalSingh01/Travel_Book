@@ -6,37 +6,62 @@ import { Gender, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// export const getMap = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const userId: string | undefined = req.user?.id;
-//     const books = await BookModel.find({ userId, status: "Explored" })
-//       .populate({
-//         path: "pages",
-//         select: "location", // Only fetch location field
-//       })
-//       .lean(); // Converts Mongoose documents to plain JavaScript objects
-    
-//     const locations = books.flatMap(book => 
-//       (book.pages as IPage[]).map(page => ({
-//         latitude: page.location.latitude,
-//         longitude: page.location.longitude
-//       }))
-//     );
-    
-//     res.status(500).json({ 
-//       success: true,
-//       message: "",
-//       data: locations 
-//     });
+export const getBookPagesLocations = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { bookId } = req.params;
 
-//   } catch (error) {
-//     console.error(error);
-//       res.status(500).json({
-//       success: false,
-//       message: ""
-//     })
-//   }
-// };
+    const pages = await prisma.page.findMany({
+      where: { bookId },
+      select: {
+        id: true,
+        location: true,
+        images: true,
+      }
+    });
+
+    if (!pages || pages.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "No pages found for this book",
+        locations: [],
+      });
+      return;
+    }
+
+    const result = pages.map(page => {
+      // Extract location properties safely
+      const loc = (page.location || {}) as {
+        latitude?: number;
+        longitude?: number;
+        address?: string;
+      };
+
+      return {
+        pageId: page.id,
+        location: {
+          latitude: loc.latitude ?? null,
+          longitude: loc.longitude ?? null,
+          address: loc.address ?? null,
+        },
+        image: (Array.isArray(page.images) && page.images.length > 0) ? page.images[0] : null,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully Fetched Visited Places",
+      data: result,
+    });
+
+  } catch (error) {
+    console.error("Error fetching page locations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch page locations",
+      pages: [],
+    });
+  }
+};
 
 // GET User Profile
 export const getUserProfile = async (req: Request, res: Response): Promise<void> => {

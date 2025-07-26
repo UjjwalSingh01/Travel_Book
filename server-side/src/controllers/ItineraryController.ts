@@ -259,6 +259,7 @@ interface ItineraryData {
   location: {
     latitude: number;
     longitude: number;
+    address: string;
   }
   rating: number;
   experience?: {
@@ -305,7 +306,8 @@ export const addNewItinerary = async(req: Request, res: Response): Promise<void>
       category: req.body.category,
       location: {
         latitude: parseFloat(req.body.latitude),
-        longitude: parseFloat(req.body.longitude)
+        longitude: parseFloat(req.body.longitude),
+        address: req.body.address,
       },
       rating: parseFloat(req.body.rating),
       experience: req.body.experienceComment,

@@ -60,6 +60,8 @@ model User {
   password       String
   profileImage   String?         @default("")
   bio            String?         @default("")
+  googleId       String?         @unique
+  provider       String          @default("local")
   role           UserRole        @default(User)
   isVerified     Boolean         @default(false)
   accountStatus  AccountStatus   @default(Active)
@@ -105,7 +107,7 @@ model Page {
   images          String[]
   description     String?
   tips            String?
-  // location        Json?
+  location        Json?
   book            Book            @relation(fields: [bookId], references: [id])
   bookId          String
   itineraries     Itinerary[]     @relation("PageToItinerary")
@@ -146,16 +148,6 @@ model Experience {
   updatedAt         DateTime     @updatedAt
 }
 
-// model Reply {
-//   id           String         @id @default(uuid())
-//   comment      String
-//   user         User           @relation(fields: [userId], references: [id])
-//   userId       String
-//   experience   Experience     @relation(fields: [experienceId], references: [id])
-//   experienceId String
-//   createdAt    DateTime       @default(now())
-// }
-
 model Review {
   id          String       @id @default(uuid())
   rating      Int
@@ -166,6 +158,16 @@ model Review {
   itineraryId String
   createdAt   DateTime     @default(now())
 }
+
+// model Reply {
+//   id           String         @id @default(uuid())
+//   comment      String
+//   user         User           @relation(fields: [userId], references: [id])
+//   userId       String
+//   experience   Experience     @relation(fields: [experienceId], references: [id])
+//   experienceId String
+//   createdAt    DateTime       @default(now())
+// }
 
 // model Wishlist {
 //   id        String            @id @default(uuid())

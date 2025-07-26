@@ -18,6 +18,11 @@ export interface RegisterType {
   confirmPassword: string;
 }
 
+interface LoginType {
+  email: string;
+  password: string
+}
+
 // User Sign-Up
 export const register = async(req: Request, res: Response): Promise<void> => {
   try {
@@ -104,11 +109,6 @@ export const register = async(req: Request, res: Response): Promise<void> => {
     return;
   }
 };
-
-interface LoginType {
-  email: string;
-  password: string
-}
 
 // Sign-In
 export const login = async (req: Request, res: Response): Promise<void> => {
@@ -255,3 +255,48 @@ export const logout = async (_req: Request, res: Response): Promise<void> => {
     });
   }
 }
+
+
+// Google Authentication
+export const googleAuthController = {
+  googleLoginSuccess: async (req: Request, res: Response): Promise<void> => {
+    try {
+      // Extract user information set by Passport Google Strategy
+      const user = req.user as {
+        id: string;
+        email: string;
+        firstName?: string;
+        lastName?: string;
+      };
+
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: "Google authentication failed",
+        });
+        return;
+      }
+
+      // Issue JWT (same logic as local login)
+      const token = jwt.sign(
+        { email: user.email, id: user.id },
+        process.env.JWT_SECRET!,
+        { expiresIn: "1d" }
+      );
+
+      res.cookie("user", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      });
+
+      // Redirect or respond as needed
+      res.redirect(`${process.env.FRONTEND_URL}`);
+
+    } catch (error) {
+      console.error("Google login error:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  },
+};

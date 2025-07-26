@@ -3,7 +3,6 @@ import { BookStatus, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-
 export const getMyBook = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
@@ -29,7 +28,7 @@ export const getMyBook = async (req: Request, res: Response): Promise<void> => {
       }
     })
 
-    console.log(books);
+    // console.log(books);
 
     res.status(200).json({ 
       success: true,
@@ -78,7 +77,8 @@ export const getBookDescriptionById = async (req: Request, res: Response): Promi
         }
       }
     })
-    console.log(`Book descriptiom: ${book}`);
+
+    // console.log(`Book descriptiom: ${book}`);
     if (!book) {
       res.status(404).json({ 
         success: false, 
@@ -86,8 +86,6 @@ export const getBookDescriptionById = async (req: Request, res: Response): Promi
       });
       return;
     }
-
-    console.log(book);
 
     res.status(200).json({ 
       success: true, 
@@ -136,7 +134,8 @@ export const getPlanningBookById = async(req: Request, res: Response): Promise<v
             // location: {
             //   select: {
             //     latitude: true,
-            //     longitude: true
+            //     longitude: true,
+            //     address: true,
             //   }
             // },
             itineraries: {

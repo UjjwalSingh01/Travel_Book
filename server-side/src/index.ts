@@ -5,10 +5,12 @@ import cookieParser from "cookie-parser";
 import { authRoutes } from "./routes/AuthRoutes";
 import { userRoutes } from "./routes/UserRoutes";
 import { DecodedUser } from "./middlewares/AuthMiddleware";
-import { wishListRoutes } from "./routes/WishListRoutes";
+// import { wishListRoutes } from "./routes/WishListRoutes";
 import { pageRoutes } from "./routes/PageRoutes";
 import { bookRoutes } from "./routes/BookRoutes";
 import { itineraryRoutes } from "./routes/ItineraryRoutes";
+import session from 'express-session';
+import passport from './configs/passport';
 // import multer from "multer";
 
 dotenv.config();
@@ -24,7 +26,6 @@ declare global {
   }
 }
 
-
 app.use(cors({
   origin: process.env.FRONTEND_URL, 
   credentials: true, 
@@ -33,11 +34,20 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));  // Ensure file uploads work properly
 app.use(cookieParser());
-
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // For CORS + cookies
+    secure: process.env.NODE_ENV === "production"
+  }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Multer middleware for form-data
 // const upload = multer(); // No storage configuration needed for non-file fields
-
 
 // Routes
 app.use("/api/v1/auth", authRoutes);

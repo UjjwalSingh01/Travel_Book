@@ -10,6 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "default_secret_key";
 export interface DecodedUser {
   id: string;
   email: string;
+  name: string;
 }
 
 // Extend the Request type to include the `user` property
